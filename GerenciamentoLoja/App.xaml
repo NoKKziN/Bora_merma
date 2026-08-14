@@ -1,0 +1,23 @@
+﻿<Application x:Class="GerenciamentoLoja.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:GerenciamentoLoja"
+             xmlns:conv="clr-namespace:GerenciamentoLoja.Converters"
+             xmlns:sys="clr-namespace:System.Windows.Controls;assembly=PresentationFramework"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+
+                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
+
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
+
+            </ResourceDictionary.MergedDictionaries>
+
+            <sys:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+        </ResourceDictionary>
+
+    </Application.Resources>
+</Application>
