@@ -1,0 +1,72 @@
+<UserControl x:Class="GerenciamentoLoja.Views.ProdutosDisponiveisView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:vm="clr-namespace:GerenciamentoLoja.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:ProdutosDisponiveisViewModel}"
+             d:DesignWidth="1000" d:DesignHeight="700">
+    <Grid Margin="24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="16"/>
+            <ColumnDefinition Width="340"/>
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Column="0">
+            <TextBlock DockPanel.Dock="Top" Text="Produtos disponíveis" Style="{StaticResource MaterialDesignHeadline5TextBlock}" Margin="0,0,0,16"/>
+
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0" Text="{Binding FiltroCategoria, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Filtrar por categoria" Margin="0,0,8,0"/>
+                <Button Grid.Column="1" Content="Filtrar" Command="{Binding FiltrarCommand}"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"/>
+            </Grid>
+
+            <TextBlock DockPanel.Dock="Top" Text="{Binding Mensagem}" Margin="0,0,0,16"
+                       Visibility="{Binding Mensagem, Converter={StaticResource StringToVisibilityConverter}}"
+                       Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+
+            <DataGrid ItemsSource="{Binding Produtos}" AutoGenerateColumns="False" IsReadOnly="True"
+                      materialDesign:DataGridAssist.CellPadding="8" CanUserAddRows="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="SKU" Binding="{Binding Sku}" Width="120"/>
+                    <DataGridTextColumn Header="Produto" Binding="{Binding Nome}" Width="*"/>
+                    <DataGridTextColumn Header="Categoria" Binding="{Binding Categoria}" Width="160"/>
+                    <DataGridTextColumn Header="Disponível" Binding="{Binding QuantidadeDisponivel}" Width="100"/>
+                    <DataGridTextColumn Header="Valor unit." Binding="{Binding ValorUnitarioMedio, StringFormat={}{0:C2}}" Width="120"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+
+        <materialDesign:Card Grid.Column="2" Padding="16" VerticalAlignment="Top">
+            <StackPanel>
+                <TextBlock Text="Entrada / Saída rápida" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,0,0,12"/>
+
+                <TextBox Text="{Binding SkuMovimento, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="SKU" Margin="0,0,0,12"/>
+                <TextBox Text="{Binding ProdutoMovimento, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Nome do produto" Margin="0,0,0,12"/>
+                <TextBox Text="{Binding CategoriaMovimento, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Categoria" Margin="0,0,0,12"/>
+                <TextBox Text="{Binding QuantidadeMovimento, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Quantidade" Margin="0,0,0,12"/>
+                <TextBox Text="{Binding ValorUnitarioMovimento, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Valor unitário" Margin="0,0,0,16"/>
+
+                <UniformGrid Columns="2">
+                    <Button Content="Dar entrada" Command="{Binding DarEntradaCommand}"
+                            Style="{StaticResource MaterialDesignRaisedButton}" Margin="0,0,4,0"/>
+                    <Button Content="Dar saída" Command="{Binding DarSaidaCommand}"
+                            Style="{StaticResource MaterialDesignOutlinedButton}" Margin="4,0,0,0"/>
+                </UniformGrid>
+            </StackPanel>
+        </materialDesign:Card>
+    </Grid>
+</UserControl>

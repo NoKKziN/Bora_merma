@@ -1,0 +1,92 @@
+<Window x:Class="GerenciamentoLoja.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:vm="clr-namespace:GerenciamentoLoja.ViewModels"
+        xmlns:views="clr-namespace:GerenciamentoLoja.Views"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance vm:ShellViewModel}"
+        Title="Gerenciamento da Loja" Height="720" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="{materialDesign:MaterialDesignFont}"
+        TextElement.FontSize="14">
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:DashboardPlaceholderViewModel}">
+            <views:DashboardPlaceholderView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ConexaoPlanilhaViewModel}">
+            <views:ConexaoPlanilhaView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ProdutosDisponiveisViewModel}">
+            <views:ProdutosDisponiveisView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:VendasRealizadasViewModel}">
+            <views:VendasRealizadasView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AdicionarVendaViewModel}">
+            <views:AdicionarVendaView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BalancoGeralViewModel}">
+            <views:BalancoGeralView/>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="260"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <materialDesign:ColorZone Grid.Column="0" Mode="PrimaryDark">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Margin="16,20,16,20">
+                    <TextBlock Text="Gerenciamento" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Foreground="White"/>
+                    <TextBlock Text="da Loja" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Foreground="White"/>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Bottom" Margin="8,0,8,16">
+                    <Separator Margin="8,0,8,8"/>
+                    <Button Content="Conexão com a planilha" Command="{Binding NavegarParaConexaoCommand}"
+                            Style="{StaticResource MaterialDesignFlatButton}" Foreground="White" HorizontalContentAlignment="Left"/>
+                </StackPanel>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="8,0">
+                        <Button Content="Dashboard" Command="{Binding NavegarParaDashboardCommand}"
+                                Style="{StaticResource MaterialDesignFlatButton}" Foreground="White"
+                                HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+
+                        <TextBlock Text="PRODUTOS" FontSize="11" Foreground="#AAAAAA" Margin="16,16,0,4"/>
+                        <Button Content="Produtos disponíveis" Command="{Binding NavegarParaProdutosCommand}"
+                                Style="{StaticResource MaterialDesignFlatButton}" Foreground="White"
+                                HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+
+                        <TextBlock Text="VENDAS" FontSize="11" Foreground="#AAAAAA" Margin="16,16,0,4"/>
+                        <Button Content="Vendas realizadas" Command="{Binding NavegarParaVendasRealizadasCommand}"
+                                Style="{StaticResource MaterialDesignFlatButton}" Foreground="White"
+                                HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+                        <Button Content="Adicionar venda" Command="{Binding NavegarParaAdicionarVendaCommand}"
+                                Style="{StaticResource MaterialDesignFlatButton}" Foreground="White"
+                                HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+
+                        <TextBlock Text="FINANCEIRO" FontSize="11" Foreground="#AAAAAA" Margin="16,16,0,4"/>
+                        <Button Content="Balanço geral" Command="{Binding NavegarParaBalancoCommand}"
+                                Style="{StaticResource MaterialDesignFlatButton}" Foreground="White"
+                                HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </materialDesign:ColorZone>
+
+        <DockPanel Grid.Column="1">
+            <materialDesign:ColorZone DockPanel.Dock="Top" Mode="PrimaryMid" Padding="24,16">
+                <TextBlock Text="{Binding TituloPagina}" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Foreground="White"/>
+            </materialDesign:ColorZone>
+
+            <ContentControl Content="{Binding CurrentViewModel}"/>
+        </DockPanel>
+    </Grid>
+</Window>
