@@ -32,58 +32,71 @@
         <DataTemplate DataType="{x:Type vm:BalancoGeralViewModel}">
             <views:BalancoGeralView/>
         </DataTemplate>
+
+        <Style x:Key="NavButtonStyle" TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Margin" Value="0,1"/>
+            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="4"/>
+        </Style>
+
+        <Style x:Key="NavSectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#8AAAAAAA"/>
+            <Setter Property="Margin" Value="12,10,0,2"/>
+        </Style>
     </Window.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="260"/>
+            <ColumnDefinition Width="230"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <materialDesign:ColorZone Grid.Column="0" Mode="PrimaryDark">
             <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Margin="16,20,16,20">
-                    <TextBlock Text="Gerenciamento" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Foreground="White"/>
-                    <TextBlock Text="da Loja" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Foreground="White"/>
+                <StackPanel DockPanel.Dock="Top" Margin="16,16,16,12">
+                    <TextBlock Text="Gerenciamento da Loja" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Foreground="White" TextWrapping="Wrap"/>
                 </StackPanel>
 
-                <StackPanel DockPanel.Dock="Bottom" Margin="8,0,8,16">
-                    <Separator Margin="8,0,8,8"/>
+                <StackPanel DockPanel.Dock="Bottom" Margin="8,4,8,12">
+                    <Separator Margin="4,0,4,4"/>
                     <Button Content="Conexão com a planilha" Command="{Binding NavegarParaConexaoCommand}"
-                            Style="{StaticResource MaterialDesignFlatButton}" Foreground="White" HorizontalContentAlignment="Left"/>
+                            Style="{StaticResource NavButtonStyle}"/>
                 </StackPanel>
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="8,0">
                         <Button Content="Dashboard" Command="{Binding NavegarParaDashboardCommand}"
-                                Style="{StaticResource MaterialDesignFlatButton}" Foreground="White"
-                                HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+                                Style="{StaticResource NavButtonStyle}"/>
 
-                        <TextBlock Text="PRODUTOS" FontSize="11" Foreground="#AAAAAA" Margin="16,16,0,4"/>
+                        <TextBlock Text="PRODUTOS" Style="{StaticResource NavSectionHeaderStyle}"/>
                         <Button Content="Produtos disponíveis" Command="{Binding NavegarParaProdutosCommand}"
-                                Style="{StaticResource MaterialDesignFlatButton}" Foreground="White"
-                                HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+                                Style="{StaticResource NavButtonStyle}"/>
 
-                        <TextBlock Text="VENDAS" FontSize="11" Foreground="#AAAAAA" Margin="16,16,0,4"/>
+                        <TextBlock Text="VENDAS" Style="{StaticResource NavSectionHeaderStyle}"/>
                         <Button Content="Vendas realizadas" Command="{Binding NavegarParaVendasRealizadasCommand}"
-                                Style="{StaticResource MaterialDesignFlatButton}" Foreground="White"
-                                HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+                                Style="{StaticResource NavButtonStyle}"/>
                         <Button Content="Adicionar venda" Command="{Binding NavegarParaAdicionarVendaCommand}"
-                                Style="{StaticResource MaterialDesignFlatButton}" Foreground="White"
-                                HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+                                Style="{StaticResource NavButtonStyle}"/>
 
-                        <TextBlock Text="FINANCEIRO" FontSize="11" Foreground="#AAAAAA" Margin="16,16,0,4"/>
+                        <TextBlock Text="FINANCEIRO" Style="{StaticResource NavSectionHeaderStyle}"/>
                         <Button Content="Balanço geral" Command="{Binding NavegarParaBalancoCommand}"
-                                Style="{StaticResource MaterialDesignFlatButton}" Foreground="White"
-                                HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Margin="0,0,0,4"/>
+                                Style="{StaticResource NavButtonStyle}"/>
                     </StackPanel>
                 </ScrollViewer>
             </DockPanel>
         </materialDesign:ColorZone>
 
         <DockPanel Grid.Column="1">
-            <materialDesign:ColorZone DockPanel.Dock="Top" Mode="PrimaryMid" Padding="24,16">
-                <TextBlock Text="{Binding TituloPagina}" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Foreground="White"/>
+            <materialDesign:ColorZone DockPanel.Dock="Top" Mode="PrimaryMid" Padding="24,14">
+                <TextBlock Text="{Binding TituloPagina}" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Foreground="White"/>
             </materialDesign:ColorZone>
 
             <ContentControl Content="{Binding CurrentViewModel}"/>
