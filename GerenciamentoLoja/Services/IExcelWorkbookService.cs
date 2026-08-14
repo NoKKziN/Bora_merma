@@ -14,6 +14,7 @@ public interface IExcelWorkbookService : IDisposable
 
     List<string> ObterNomesAbas();
     List<string> ObterCabecalhos(string nomeAba, int linhaCabecalho);
+    List<List<string>> ObterAmostraLinhas(string nomeAba, int quantidadeLinhas);
 
     List<ItemEstoque> LerItens(PlanilhaMapeamento mapeamento);
     void AdicionarItem(PlanilhaMapeamento mapeamento, ItemEstoque item);

@@ -150,6 +150,72 @@ public class ExcelInteropService : IExcelWorkbookService
         }
     }
 
+    public List<List<string>> ObterAmostraLinhas(string nomeAba, int quantidadeLinhas)
+    {
+        GarantirConectado();
+        return ComRetry(() => ObterAmostraLinhasInterno(nomeAba, quantidadeLinhas));
+    }
+
+    // Lê as primeiras linhas "cruas" da aba (sem saber ainda qual é o cabeçalho), para o
+    // usuário escolher visualmente qual linha tem os nomes das colunas — em vez de digitar
+    // um número de linha às cegas, o que é o motivo mais comum de falha ao conectar.
+    private List<List<string>> ObterAmostraLinhasInterno(string nomeAba, int quantidadeLinhas)
+    {
+        var worksheet = ObterWorksheet(nomeAba);
+        try
+        {
+            var usedRange = worksheet.UsedRange;
+            try
+            {
+                int primeiraLinha = (int)usedRange.Row;
+                int ultimaLinha = Math.Min(primeiraLinha + quantidadeLinhas - 1, primeiraLinha + (int)usedRange.Rows.Count - 1);
+                int primeiraColuna = (int)usedRange.Column;
+                int ultimaColuna = Math.Min(primeiraColuna + (int)usedRange.Columns.Count - 1, primeiraColuna + 14);
+
+                var linhas = new List<List<string>>();
+                if (ultimaLinha < primeiraLinha)
+                {
+                    return linhas;
+                }
+
+                var bloco = worksheet.Range[
+                    worksheet.Cells[primeiraLinha, primeiraColuna],
+                    worksheet.Cells[ultimaLinha, ultimaColuna]];
+                try
+                {
+                    var valores = ExtrairMatriz(bloco, primeiraLinha, ultimaLinha, primeiraColuna, ultimaColuna);
+
+                    for (int linha = primeiraLinha; linha <= ultimaLinha; linha++)
+                    {
+                        int linhaRelativa = linha - primeiraLinha + 1;
+                        var celulas = new List<string>();
+                        for (int coluna = primeiraColuna; coluna <= ultimaColuna; coluna++)
+                        {
+                            int colunaRelativa = coluna - primeiraColuna + 1;
+                            var valor = valores[linhaRelativa, colunaRelativa];
+                            celulas.Add(valor?.ToString()?.Trim() ?? string.Empty);
+                        }
+                        linhas.Add(celulas);
+                    }
+                }
+                finally
+                {
+                    Marshal.ReleaseComObject((object)bloco);
+                }
+
+                return linhas;
+            }
+            finally
+            {
+                Marshal.ReleaseComObject((object)usedRange);
+            }
+        }
+        finally
+        {
+            Marshal.ReleaseComObject((object)worksheet);
+        }
+    }
+
     public List<ItemEstoque> LerItens(PlanilhaMapeamento mapeamento)
     {
         GarantirConectado();

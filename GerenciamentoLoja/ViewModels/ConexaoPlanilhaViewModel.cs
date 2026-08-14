@@ -10,6 +10,8 @@ namespace GerenciamentoLoja.ViewModels;
 
 public partial class ConexaoPlanilhaViewModel : ObservableObject
 {
+    private const int LinhasDeAmostra = 12;
+
     private readonly ILojaDataService _dados;
     private readonly IExcelWorkbookService _excel;
     private readonly IConfigService _config;
@@ -23,7 +25,7 @@ public partial class ConexaoPlanilhaViewModel : ObservableObject
     private string? abaSelecionada;
 
     [ObservableProperty]
-    private int linhaCabecalho = 1;
+    private LinhaPreviaItem? linhaCabecalhoSelecionada;
 
     [ObservableProperty]
     private string? mensagem;
@@ -32,7 +34,10 @@ public partial class ConexaoPlanilhaViewModel : ObservableObject
     private bool carregando;
 
     public ObservableCollection<string> AbasDisponiveis { get; } = new();
+    public ObservableCollection<LinhaPreviaItem> LinhasPrevia { get; } = new();
     public ObservableCollection<CampoMapeamentoItem> Campos { get; } = new();
+
+    private int LinhaCabecalho => LinhaCabecalhoSelecionada?.Numero ?? 0;
 
     public ConexaoPlanilhaViewModel(ILojaDataService dados, IExcelWorkbookService excel, IConfigService config)
     {
@@ -103,7 +108,6 @@ public partial class ConexaoPlanilhaViewModel : ObservableObject
             }
 
             AbaSelecionada = AbasDisponiveis.FirstOrDefault();
-            CarregarColunas();
         }
         catch (Exception ex)
         {
@@ -117,12 +121,53 @@ public partial class ConexaoPlanilhaViewModel : ObservableObject
 
     partial void OnAbaSelecionadaChanged(string? value)
     {
+        CarregarAmostra();
+    }
+
+    partial void OnLinhaCabecalhoSelecionadaChanged(LinhaPreviaItem? value)
+    {
         CarregarColunas();
     }
 
-    partial void OnLinhaCabecalhoChanged(int value)
+    private void CarregarAmostra()
     {
-        CarregarColunas();
+        LinhasPrevia.Clear();
+        LinhaCabecalhoSelecionada = null;
+
+        if (string.IsNullOrWhiteSpace(AbaSelecionada) || !_excel.EstaConectado)
+        {
+            return;
+        }
+
+        try
+        {
+            var linhas = _excel.ObterAmostraLinhas(AbaSelecionada, LinhasDeAmostra);
+
+            int melhorIndice = 0;
+            int melhorContagem = -1;
+            for (int i = 0; i < linhas.Count; i++)
+            {
+                var preenchidas = linhas[i].Count(c => !string.IsNullOrWhiteSpace(c));
+                if (preenchidas > melhorContagem)
+                {
+                    melhorContagem = preenchidas;
+                    melhorIndice = i;
+                }
+
+                var resumo = string.Join("  |  ", linhas[i].Where(c => !string.IsNullOrWhiteSpace(c)).Take(6));
+                LinhasPrevia.Add(new LinhaPreviaItem
+                {
+                    Numero = i + 1,
+                    Resumo = string.IsNullOrWhiteSpace(resumo) ? "(linha vazia)" : resumo
+                });
+            }
+
+            LinhaCabecalhoSelecionada = LinhasPrevia.Count > 0 ? LinhasPrevia[melhorIndice] : null;
+        }
+        catch (Exception ex)
+        {
+            Mensagem = $"Não foi possível ler as linhas da aba selecionada: {ex.Message}";
+        }
     }
 
     private void CarregarColunas()
@@ -159,6 +204,7 @@ public partial class ConexaoPlanilhaViewModel : ObservableObject
     {
         return !string.IsNullOrWhiteSpace(CaminhoArquivo)
             && !string.IsNullOrWhiteSpace(AbaSelecionada)
+            && LinhaCabecalho > 0
             && Campos.Where(c => c.Obrigatorio).All(c => !string.IsNullOrWhiteSpace(c.ColunaSelecionada));
     }
 
@@ -180,7 +226,6 @@ public partial class ConexaoPlanilhaViewModel : ObservableObject
                         AbasDisponiveis.Add(nome);
                     }
                     AbaSelecionada ??= AbasDisponiveis.FirstOrDefault();
-                    CarregarColunas();
                 }
             }
 

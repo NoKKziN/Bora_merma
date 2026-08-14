@@ -55,23 +55,23 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="230"/>
+            <ColumnDefinition Width="210"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <materialDesign:ColorZone Grid.Column="0" Mode="PrimaryDark">
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Margin="16,16,16,12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="14,16,14,10">
                     <TextBlock Text="Gerenciamento da Loja" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Foreground="White" TextWrapping="Wrap"/>
                 </StackPanel>
 
-                <StackPanel DockPanel.Dock="Bottom" Margin="8,4,8,12">
-                    <Separator Margin="4,0,4,4"/>
-                    <Button Content="Conexão com a planilha" Command="{Binding NavegarParaConexaoCommand}"
-                            Style="{StaticResource NavButtonStyle}"/>
-                </StackPanel>
-
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="8,0">
                         <Button Content="Dashboard" Command="{Binding NavegarParaDashboardCommand}"
                                 Style="{StaticResource NavButtonStyle}"/>
@@ -91,7 +91,13 @@
                                 Style="{StaticResource NavButtonStyle}"/>
                     </StackPanel>
                 </ScrollViewer>
-            </DockPanel>
+
+                <StackPanel Grid.Row="2" Margin="8,4,8,10">
+                    <Border BorderThickness="0,1,0,0" BorderBrush="#33FFFFFF" Margin="4,0,4,6"/>
+                    <Button Content="Conexão com a planilha" Command="{Binding NavegarParaConexaoCommand}"
+                            Style="{StaticResource NavButtonStyle}"/>
+                </StackPanel>
+            </Grid>
         </materialDesign:ColorZone>
 
         <DockPanel Grid.Column="1">

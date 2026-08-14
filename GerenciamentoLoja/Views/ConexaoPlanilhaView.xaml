@@ -30,8 +30,23 @@
             <ComboBox ItemsSource="{Binding AbasDisponiveis}" SelectedItem="{Binding AbaSelecionada}"
                       materialDesign:HintAssist.Hint="Aba da planilha" Margin="0,0,0,16"/>
 
-            <TextBox Text="{Binding LinhaCabecalho, UpdateSourceTrigger=PropertyChanged}"
-                     materialDesign:HintAssist.Hint="Linha do cabeçalho (ex: 1)" Margin="0,0,0,16" MaxWidth="220" HorizontalAlignment="Left"/>
+            <TextBlock Text="Qual linha tem os nomes das colunas?" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,8,0,4"/>
+            <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MaterialDesignBodyLight}" Margin="0,0,0,8">
+                Já marcamos a linha que parece ser o cabeçalho. Clique em outra linha da lista abaixo se não estiver certo.
+            </TextBlock>
+            <Border BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="1" Margin="0,0,0,16" MaxHeight="220">
+                <ListBox ItemsSource="{Binding LinhasPrevia}" SelectedItem="{Binding LinhaCabecalhoSelecionada}"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="4">
+                                <TextBlock Text="{Binding Numero}" FontWeight="Bold" Width="28"/>
+                                <TextBlock Text="{Binding Resumo}" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
 
             <TextBlock Text="Mapeamento de colunas" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,8,0,8"/>
 
