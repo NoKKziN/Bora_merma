@@ -106,13 +106,13 @@ public class ExcelInteropService : IExcelWorkbookService
         });
     }
 
-    public List<string> ObterCabecalhos(string nomeAba, int linhaCabecalho)
+    public List<ColunaCabecalho> ObterCabecalhos(string nomeAba, int linhaCabecalho)
     {
         GarantirConectado();
         return ComRetry(() => ObterCabecalhosInterno(nomeAba, linhaCabecalho));
     }
 
-    private List<string> ObterCabecalhosInterno(string nomeAba, int linhaCabecalho)
+    private List<ColunaCabecalho> ObterCabecalhosInterno(string nomeAba, int linhaCabecalho)
     {
         var worksheet = ObterWorksheet(nomeAba);
         try
@@ -123,14 +123,14 @@ public class ExcelInteropService : IExcelWorkbookService
                 int primeiraColuna = (int)usedRange.Column;
                 int ultimaColuna = primeiraColuna + (int)usedRange.Columns.Count - 1;
 
-                var cabecalhos = new List<string>();
+                var cabecalhos = new List<ColunaCabecalho>();
                 for (int coluna = primeiraColuna; coluna <= ultimaColuna; coluna++)
                 {
                     var celula = worksheet.Cells[linhaCabecalho, coluna];
                     try
                     {
                         object? valor = celula.Value2;
-                        cabecalhos.Add(valor?.ToString() ?? string.Empty);
+                        cabecalhos.Add(new ColunaCabecalho(coluna, valor?.ToString() ?? string.Empty));
                     }
                     finally
                     {

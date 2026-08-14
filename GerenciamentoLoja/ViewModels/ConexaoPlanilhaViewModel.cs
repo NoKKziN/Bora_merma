@@ -190,18 +190,19 @@ public partial class ConexaoPlanilhaViewModel : ObservableObject
         try
         {
             var cabecalhos = _excel.ObterCabecalhos(AbaSelecionada, LinhaCabecalho)
-                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .Where(c => !string.IsNullOrWhiteSpace(c.Texto))
                 .ToList();
+            var textos = cabecalhos.Select(c => c.Texto).ToList();
 
             foreach (var campo in Campos)
             {
                 var selecaoAtual = campo.ColunaSelecionada;
                 campo.Opcoes.Clear();
-                foreach (var cabecalho in cabecalhos)
+                foreach (var texto in textos)
                 {
-                    campo.Opcoes.Add(cabecalho);
+                    campo.Opcoes.Add(texto);
                 }
-                campo.ColunaSelecionada = selecaoAtual != null && cabecalhos.Contains(selecaoAtual) ? selecaoAtual : null;
+                campo.ColunaSelecionada = selecaoAtual != null && textos.Contains(selecaoAtual) ? selecaoAtual : null;
             }
         }
         catch (Exception ex)
@@ -253,10 +254,10 @@ public partial class ConexaoPlanilhaViewModel : ObservableObject
                 {
                     continue;
                 }
-                var indice = cabecalhos.FindIndex(c => c == campo.ColunaSelecionada);
-                if (indice >= 0)
+                var correspondente = cabecalhos.FirstOrDefault(c => c.Texto == campo.ColunaSelecionada);
+                if (correspondente != null)
                 {
-                    mapeamento.Colunas[campo.CampoLogico] = indice + 1;
+                    mapeamento.Colunas[campo.CampoLogico] = correspondente.Coluna;
                 }
             }
 

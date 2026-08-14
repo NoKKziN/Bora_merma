@@ -13,7 +13,7 @@ public interface IExcelWorkbookService : IDisposable
     void Desconectar();
 
     List<string> ObterNomesAbas();
-    List<string> ObterCabecalhos(string nomeAba, int linhaCabecalho);
+    List<ColunaCabecalho> ObterCabecalhos(string nomeAba, int linhaCabecalho);
     List<List<string>> ObterAmostraLinhas(string nomeAba, int quantidadeLinhas);
 
     List<ItemEstoque> LerItens(PlanilhaMapeamento mapeamento);
