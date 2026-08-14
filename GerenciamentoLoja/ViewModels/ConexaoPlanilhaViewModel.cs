@@ -19,12 +19,15 @@ public partial class ConexaoPlanilhaViewModel : ObservableObject
     public event EventHandler? Conectado;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ConectarCommand))]
     private string? caminhoArquivo;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ConectarCommand))]
     private string? abaSelecionada;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ConectarCommand))]
     private LinhaPreviaItem? linhaCabecalhoSelecionada;
 
     [ObservableProperty]
@@ -56,6 +59,13 @@ public partial class ConexaoPlanilhaViewModel : ObservableObject
         Campos.Add(new CampoMapeamentoItem(CamposItem.PrecoAVista, "Preço à vista (opcional)", false));
         Campos.Add(new CampoMapeamentoItem(CamposItem.PrecoCartao, "Preço no cartão (opcional)", false));
         Campos.Add(new CampoMapeamentoItem(CamposItem.Cliente, "Cliente (opcional)", false));
+
+        foreach (var campo in Campos)
+        {
+            // O RelayCommand só reavalia CanExecute quando explicitamente avisado; sem isso,
+            // o botão Conectar continuaria desabilitado mesmo depois de preencher tudo.
+            campo.PropertyChanged += (_, _) => ConectarCommand.NotifyCanExecuteChanged();
+        }
 
         CarregarMapeamentoSalvo();
     }
