@@ -40,15 +40,17 @@ public partial class ConexaoPlanilhaViewModel : ObservableObject
         _excel = excel;
         _config = config;
 
-        Campos.Add(new CampoMapeamentoItem(CamposMovimento.Data, "Data", true));
-        Campos.Add(new CampoMapeamentoItem(CamposMovimento.Sku, "SKU / Código do produto", true));
-        Campos.Add(new CampoMapeamentoItem(CamposMovimento.Produto, "Nome do produto", true));
-        Campos.Add(new CampoMapeamentoItem(CamposMovimento.Categoria, "Categoria (opcional)", false));
-        Campos.Add(new CampoMapeamentoItem(CamposMovimento.Tipo, "Tipo (Entrada/Saída)", true));
-        Campos.Add(new CampoMapeamentoItem(CamposMovimento.Quantidade, "Quantidade", true));
-        Campos.Add(new CampoMapeamentoItem(CamposMovimento.ValorUnitario, "Valor unitário", true));
-        Campos.Add(new CampoMapeamentoItem(CamposMovimento.Cliente, "Cliente (opcional)", false));
-        Campos.Add(new CampoMapeamentoItem(CamposMovimento.Motivo, "Motivo (opcional)", false));
+        Campos.Add(new CampoMapeamentoItem(CamposItem.Sku, "SKU / código da peça", true));
+        Campos.Add(new CampoMapeamentoItem(CamposItem.Produto, "Nome / descrição do produto", true));
+        Campos.Add(new CampoMapeamentoItem(CamposItem.Categoria, "Categoria (tipo do produto)", true));
+        Campos.Add(new CampoMapeamentoItem(CamposItem.Status, "Status (ex: VENDIDO)", true));
+        Campos.Add(new CampoMapeamentoItem(CamposItem.DataEntrada, "Data de entrada no estoque", true));
+        Campos.Add(new CampoMapeamentoItem(CamposItem.DataVenda, "Data da venda", true));
+        Campos.Add(new CampoMapeamentoItem(CamposItem.ValorRecebido, "Valor recebido na venda", true));
+        Campos.Add(new CampoMapeamentoItem(CamposItem.ValorCusto, "Valor de custo (opcional)", false));
+        Campos.Add(new CampoMapeamentoItem(CamposItem.PrecoAVista, "Preço à vista (opcional)", false));
+        Campos.Add(new CampoMapeamentoItem(CamposItem.PrecoCartao, "Preço no cartão (opcional)", false));
+        Campos.Add(new CampoMapeamentoItem(CamposItem.Cliente, "Cliente (opcional)", false));
 
         CarregarMapeamentoSalvo();
     }

@@ -9,39 +9,36 @@
              d:DataContext="{d:DesignInstance vm:AdicionarVendaViewModel}"
              d:DesignWidth="700" d:DesignHeight="700">
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
-        <materialDesign:Card MaxWidth="520" HorizontalAlignment="Left" Padding="24">
+        <materialDesign:Card MaxWidth="560" HorizontalAlignment="Left" Padding="24">
             <StackPanel>
                 <TextBlock Text="Adicionar venda" Style="{StaticResource MaterialDesignHeadline5TextBlock}" Margin="0,0,0,16"/>
-
-                <TextBox Text="{Binding Sku, UpdateSourceTrigger=PropertyChanged}"
-                         materialDesign:HintAssist.Hint="SKU" Margin="0,0,0,12"/>
-                <TextBox Text="{Binding Produto, UpdateSourceTrigger=PropertyChanged}"
-                         materialDesign:HintAssist.Hint="Nome do produto" Margin="0,0,0,12"/>
-                <TextBox Text="{Binding Categoria, UpdateSourceTrigger=PropertyChanged}"
-                         materialDesign:HintAssist.Hint="Categoria" Margin="0,0,0,12"/>
-                <TextBox Text="{Binding Cliente, UpdateSourceTrigger=PropertyChanged}"
-                         materialDesign:HintAssist.Hint="Cliente (opcional)" Margin="0,0,0,12"/>
-
-                <Grid Margin="0,0,0,12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="16"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" Text="{Binding Quantidade, UpdateSourceTrigger=PropertyChanged}"
-                             materialDesign:HintAssist.Hint="Quantidade"/>
-                    <TextBox Grid.Column="2" Text="{Binding ValorUnitario, UpdateSourceTrigger=PropertyChanged}"
-                             materialDesign:HintAssist.Hint="Valor unitário"/>
-                </Grid>
-
-                <TextBlock Margin="0,0,0,16" Style="{StaticResource MaterialDesignSubtitle1TextBlock}">
-                    <Run Text="Total da venda: "/>
-                    <Run Text="{Binding Total, StringFormat={}{0:C2}, Mode=OneWay}" FontWeight="Bold"/>
-                </TextBlock>
 
                 <TextBlock Text="{Binding Mensagem}" Margin="0,0,0,12"
                            Visibility="{Binding Mensagem, Converter={StaticResource StringToVisibilityConverter}}"
                            Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+
+                <ComboBox ItemsSource="{Binding ItensDisponiveis}" SelectedItem="{Binding ItemSelecionado}"
+                          materialDesign:HintAssist.Hint="Peça em estoque" Margin="0,0,0,16">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <Run Text="{Binding Sku, Mode=OneWay}"/>
+                                <Run Text=" - "/>
+                                <Run Text="{Binding Produto, Mode=OneWay}"/>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="{Binding ItemSelecionado.Categoria, StringFormat=Categoria: {0}}"/>
+                    <TextBlock Text="{Binding ItemSelecionado.PrecoAVista, StringFormat=Preço à vista sugerido: {0:C2}}"/>
+                </StackPanel>
+
+                <TextBox Text="{Binding ValorRecebido, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Valor recebido" Margin="0,0,0,12"/>
+                <TextBox Text="{Binding Cliente, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Cliente (opcional)" Margin="0,0,0,16"/>
 
                 <Button Content="Registrar venda" Command="{Binding RegistrarVendaCommand}"
                         Style="{StaticResource MaterialDesignRaisedButton}" HorizontalAlignment="Left"/>

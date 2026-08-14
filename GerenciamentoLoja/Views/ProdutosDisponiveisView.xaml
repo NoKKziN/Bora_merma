@@ -7,7 +7,7 @@
              xmlns:vm="clr-namespace:GerenciamentoLoja.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance vm:ProdutosDisponiveisViewModel}"
-             d:DesignWidth="1000" d:DesignHeight="700">
+             d:DesignWidth="1050" d:DesignHeight="700">
     <Grid Margin="24">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"/>
@@ -22,10 +22,13 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBox Grid.Column="0" Text="{Binding FiltroCategoria, UpdateSourceTrigger=PropertyChanged}"
                          materialDesign:HintAssist.Hint="Filtrar por categoria" Margin="0,0,8,0"/>
                 <Button Grid.Column="1" Content="Filtrar" Command="{Binding FiltrarCommand}"
+                        Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,8,0"/>
+                <Button Grid.Column="2" Content="Dar baixa" Command="{Binding DarBaixaCommand}"
                         Style="{StaticResource MaterialDesignOutlinedButton}"/>
             </Grid>
 
@@ -33,39 +36,39 @@
                        Visibility="{Binding Mensagem, Converter={StaticResource StringToVisibilityConverter}}"
                        Foreground="{DynamicResource MaterialDesignBodyLight}"/>
 
-            <DataGrid ItemsSource="{Binding Produtos}" AutoGenerateColumns="False" IsReadOnly="True"
+            <DataGrid ItemsSource="{Binding Itens}" SelectedItem="{Binding ItemSelecionado}"
+                      AutoGenerateColumns="False" IsReadOnly="True"
                       materialDesign:DataGridAssist.CellPadding="8" CanUserAddRows="False">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="SKU" Binding="{Binding Sku}" Width="120"/>
-                    <DataGridTextColumn Header="Produto" Binding="{Binding Nome}" Width="*"/>
-                    <DataGridTextColumn Header="Categoria" Binding="{Binding Categoria}" Width="160"/>
-                    <DataGridTextColumn Header="Disponível" Binding="{Binding QuantidadeDisponivel}" Width="100"/>
-                    <DataGridTextColumn Header="Valor unit." Binding="{Binding ValorUnitarioMedio, StringFormat={}{0:C2}}" Width="120"/>
+                    <DataGridTextColumn Header="SKU" Binding="{Binding Sku}" Width="110"/>
+                    <DataGridTextColumn Header="Produto" Binding="{Binding Produto}" Width="*"/>
+                    <DataGridTextColumn Header="Categoria" Binding="{Binding Categoria}" Width="150"/>
+                    <DataGridTextColumn Header="Entrada" Binding="{Binding DataEntrada, StringFormat={}{0:dd/MM/yyyy}}" Width="100"/>
+                    <DataGridTextColumn Header="Preço à vista" Binding="{Binding PrecoAVista, StringFormat={}{0:C2}}" Width="110"/>
+                    <DataGridTextColumn Header="Preço cartão" Binding="{Binding PrecoCartao, StringFormat={}{0:C2}}" Width="110"/>
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>
 
         <materialDesign:Card Grid.Column="2" Padding="16" VerticalAlignment="Top">
             <StackPanel>
-                <TextBlock Text="Entrada / Saída rápida" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,0,0,12"/>
+                <TextBlock Text="Registrar entrada de peça" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,0,0,12"/>
 
-                <TextBox Text="{Binding SkuMovimento, UpdateSourceTrigger=PropertyChanged}"
+                <TextBox Text="{Binding SkuEntrada, UpdateSourceTrigger=PropertyChanged}"
                          materialDesign:HintAssist.Hint="SKU" Margin="0,0,0,12"/>
-                <TextBox Text="{Binding ProdutoMovimento, UpdateSourceTrigger=PropertyChanged}"
+                <TextBox Text="{Binding ProdutoEntrada, UpdateSourceTrigger=PropertyChanged}"
                          materialDesign:HintAssist.Hint="Nome do produto" Margin="0,0,0,12"/>
-                <TextBox Text="{Binding CategoriaMovimento, UpdateSourceTrigger=PropertyChanged}"
+                <TextBox Text="{Binding CategoriaEntrada, UpdateSourceTrigger=PropertyChanged}"
                          materialDesign:HintAssist.Hint="Categoria" Margin="0,0,0,12"/>
-                <TextBox Text="{Binding QuantidadeMovimento, UpdateSourceTrigger=PropertyChanged}"
-                         materialDesign:HintAssist.Hint="Quantidade" Margin="0,0,0,12"/>
-                <TextBox Text="{Binding ValorUnitarioMovimento, UpdateSourceTrigger=PropertyChanged}"
-                         materialDesign:HintAssist.Hint="Valor unitário" Margin="0,0,0,16"/>
+                <TextBox Text="{Binding ValorCustoEntrada, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Valor de custo" Margin="0,0,0,12"/>
+                <TextBox Text="{Binding PrecoAVistaEntrada, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Preço à vista" Margin="0,0,0,12"/>
+                <TextBox Text="{Binding PrecoCartaoEntrada, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Preço no cartão" Margin="0,0,0,16"/>
 
-                <UniformGrid Columns="2">
-                    <Button Content="Dar entrada" Command="{Binding DarEntradaCommand}"
-                            Style="{StaticResource MaterialDesignRaisedButton}" Margin="0,0,4,0"/>
-                    <Button Content="Dar saída" Command="{Binding DarSaidaCommand}"
-                            Style="{StaticResource MaterialDesignOutlinedButton}" Margin="4,0,0,0"/>
-                </UniformGrid>
+                <Button Content="Registrar entrada" Command="{Binding RegistrarEntradaCommand}"
+                        Style="{StaticResource MaterialDesignRaisedButton}" HorizontalAlignment="Left"/>
             </StackPanel>
         </materialDesign:Card>
     </Grid>

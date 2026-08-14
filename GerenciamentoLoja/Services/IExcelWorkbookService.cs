@@ -15,6 +15,7 @@ public interface IExcelWorkbookService : IDisposable
     List<string> ObterNomesAbas();
     List<string> ObterCabecalhos(string nomeAba, int linhaCabecalho);
 
-    List<Movimento> LerMovimentos(PlanilhaMapeamento mapeamento);
-    void AdicionarMovimento(PlanilhaMapeamento mapeamento, Movimento movimento);
+    List<ItemEstoque> LerItens(PlanilhaMapeamento mapeamento);
+    void AdicionarItem(PlanilhaMapeamento mapeamento, ItemEstoque item);
+    void AtualizarItem(PlanilhaMapeamento mapeamento, int linhaPlanilha, IReadOnlyDictionary<string, object?> valores);
 }

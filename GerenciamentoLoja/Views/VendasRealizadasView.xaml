@@ -23,14 +23,12 @@
         <DataGrid ItemsSource="{Binding Vendas}" AutoGenerateColumns="False" IsReadOnly="True"
                   materialDesign:DataGridAssist.CellPadding="8" CanUserAddRows="False">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Data" Binding="{Binding Data, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Width="150"/>
+                <DataGridTextColumn Header="Data da venda" Binding="{Binding DataVenda, StringFormat={}{0:dd/MM/yyyy}}" Width="130"/>
                 <DataGridTextColumn Header="SKU" Binding="{Binding Sku}" Width="100"/>
                 <DataGridTextColumn Header="Produto" Binding="{Binding Produto}" Width="*"/>
                 <DataGridTextColumn Header="Categoria" Binding="{Binding Categoria}" Width="140"/>
                 <DataGridTextColumn Header="Cliente" Binding="{Binding Cliente}" Width="160"/>
-                <DataGridTextColumn Header="Qtd." Binding="{Binding Quantidade}" Width="70"/>
-                <DataGridTextColumn Header="Valor unit." Binding="{Binding ValorUnitario, StringFormat={}{0:C2}}" Width="110"/>
-                <DataGridTextColumn Header="Total" Binding="{Binding ValorTotal, StringFormat={}{0:C2}}" Width="110"/>
+                <DataGridTextColumn Header="Valor recebido" Binding="{Binding ValorRecebido, StringFormat={}{0:C2}}" Width="120"/>
             </DataGrid.Columns>
         </DataGrid>
     </DockPanel>

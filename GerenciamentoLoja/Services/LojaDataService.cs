@@ -36,121 +36,107 @@ public class LojaDataService : ILojaDataService
         DadosAlterados?.Invoke(this, EventArgs.Empty);
     }
 
-    public List<ProdutoEstoque> ObterProdutosDisponiveis()
-    {
-        var movimentos = LerTudo();
-
-        return movimentos
-            .GroupBy(m => m.Sku)
-            .Select(grupo =>
-            {
-                var maisRecente = grupo.OrderByDescending(m => m.Data).First();
-                var categoria = grupo
-                    .OrderByDescending(m => m.Data)
-                    .Select(m => m.Categoria)
-                    .FirstOrDefault(c => !string.IsNullOrWhiteSpace(c)) ?? string.Empty;
-
-                return new ProdutoEstoque
-                {
-                    Sku = grupo.Key,
-                    Nome = maisRecente.Produto,
-                    Categoria = categoria,
-                    QuantidadeDisponivel = grupo.Sum(m => m.Tipo == TipoMovimento.Entrada ? m.Quantidade : -m.Quantidade),
-                    ValorUnitarioMedio = maisRecente.ValorUnitario
-                };
-            })
-            .OrderBy(p => p.Categoria)
-            .ThenBy(p => p.Nome)
-            .ToList();
-    }
-
-    public List<Movimento> ObterVendas()
+    public List<ItemEstoque> ObterItensDisponiveis()
     {
         return LerTudo()
-            .Where(m => m.EhVenda)
-            .OrderByDescending(m => m.Data)
+            .Where(i => i.Disponivel)
+            .OrderBy(i => i.Categoria)
+            .ThenBy(i => i.Produto)
             .ToList();
     }
 
-    public void RegistrarEntradaEstoque(string sku, string produto, string categoria, int quantidade, decimal valorUnitario)
+    public List<ItemEstoque> ObterVendas()
     {
-        Registrar(new Movimento
-        {
-            Data = DateTime.Now,
-            Sku = sku,
-            Produto = produto,
-            Categoria = categoria,
-            Tipo = TipoMovimento.Entrada,
-            Quantidade = quantidade,
-            ValorUnitario = valorUnitario,
-            Motivo = "Reposicao"
-        });
-    }
-
-    public void RegistrarSaidaEstoque(string sku, string produto, string categoria, int quantidade, decimal valorUnitario, string motivo)
-    {
-        Registrar(new Movimento
-        {
-            Data = DateTime.Now,
-            Sku = sku,
-            Produto = produto,
-            Categoria = categoria,
-            Tipo = TipoMovimento.Saida,
-            Quantidade = quantidade,
-            ValorUnitario = valorUnitario,
-            Motivo = motivo
-        });
-    }
-
-    public void RegistrarVenda(string sku, string produto, string categoria, int quantidade, decimal valorUnitario, string? cliente)
-    {
-        Registrar(new Movimento
-        {
-            Data = DateTime.Now,
-            Sku = sku,
-            Produto = produto,
-            Categoria = categoria,
-            Tipo = TipoMovimento.Saida,
-            Quantidade = quantidade,
-            ValorUnitario = valorUnitario,
-            Motivo = "Venda",
-            Cliente = cliente
-        });
-    }
-
-    public List<BalancoPeriodo> ObterBalanco(AgrupamentoBalanco agrupamento)
-    {
-        var movimentos = LerTudo();
-
-        return movimentos
-            .GroupBy(m => ChaveAgrupamento(m.Data, agrupamento))
-            .Select(grupo => new BalancoPeriodo
-            {
-                Periodo = grupo.Key.Rotulo,
-                DataReferencia = grupo.Key.Referencia,
-                // Saída de mercadoria = venda = dinheiro entrando no caixa.
-                Entradas = grupo.Where(m => m.Tipo == TipoMovimento.Saida).Sum(m => m.ValorTotal),
-                // Entrada de mercadoria = compra/reposição = dinheiro saindo do caixa.
-                Saidas = grupo.Where(m => m.Tipo == TipoMovimento.Entrada).Sum(m => m.ValorTotal)
-            })
-            .OrderBy(b => b.DataReferencia)
+        return LerTudo()
+            .Where(i => i.Vendido)
+            .OrderByDescending(i => i.DataVenda)
             .ToList();
     }
 
-    private List<Movimento> LerTudo()
-    {
-        return Mapeamento == null ? new List<Movimento>() : _excel.LerMovimentos(Mapeamento);
-    }
-
-    private void Registrar(Movimento movimento)
+    public void RegistrarEntrada(string sku, string produto, string categoria, decimal valorCusto, decimal precoAVista, decimal precoCartao)
     {
         if (Mapeamento == null)
         {
             throw new InvalidOperationException("Nenhuma planilha conectada.");
         }
 
-        _excel.AdicionarMovimento(Mapeamento, movimento);
+        _excel.AdicionarItem(Mapeamento, new ItemEstoque
+        {
+            Sku = sku,
+            Produto = produto,
+            Categoria = categoria,
+            Status = string.Empty,
+            DataEntrada = DateTime.Now,
+            ValorCusto = valorCusto,
+            PrecoAVista = precoAVista,
+            PrecoCartao = precoCartao
+        });
         DadosAlterados?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void RegistrarVenda(ItemEstoque item, decimal valorRecebido, string? cliente)
+    {
+        if (Mapeamento == null)
+        {
+            throw new InvalidOperationException("Nenhuma planilha conectada.");
+        }
+
+        var valores = new Dictionary<string, object?>
+        {
+            [CamposItem.Status] = "VENDIDO",
+            [CamposItem.DataVenda] = DateTime.Now,
+            [CamposItem.ValorRecebido] = valorRecebido,
+            [CamposItem.Cliente] = cliente
+        };
+        _excel.AtualizarItem(Mapeamento, item.LinhaPlanilha, valores);
+        DadosAlterados?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void DarBaixa(ItemEstoque item)
+    {
+        if (Mapeamento == null)
+        {
+            throw new InvalidOperationException("Nenhuma planilha conectada.");
+        }
+
+        var valores = new Dictionary<string, object?>
+        {
+            [CamposItem.Status] = "BAIXA"
+        };
+        _excel.AtualizarItem(Mapeamento, item.LinhaPlanilha, valores);
+        DadosAlterados?.Invoke(this, EventArgs.Empty);
+    }
+
+    public List<BalancoPeriodo> ObterBalanco(AgrupamentoBalanco agrupamento)
+    {
+        var itens = LerTudo();
+
+        var entradasPorPeriodo = itens
+            .Where(i => i.Vendido && i.DataVenda.HasValue)
+            .GroupBy(i => ChaveAgrupamento(i.DataVenda!.Value, agrupamento))
+            .ToDictionary(g => g.Key, g => g.Sum(i => i.ValorRecebido ?? 0));
+
+        var saidasPorPeriodo = itens
+            .GroupBy(i => ChaveAgrupamento(i.DataEntrada, agrupamento))
+            .ToDictionary(g => g.Key, g => g.Sum(i => i.ValorCusto));
+
+        var chaves = entradasPorPeriodo.Keys.Union(saidasPorPeriodo.Keys).Distinct();
+
+        return chaves
+            .Select(chave => new BalancoPeriodo
+            {
+                Periodo = chave.Rotulo,
+                DataReferencia = chave.Referencia,
+                Entradas = entradasPorPeriodo.TryGetValue(chave, out var entrada) ? entrada : 0,
+                Saidas = saidasPorPeriodo.TryGetValue(chave, out var saida) ? saida : 0
+            })
+            .OrderBy(b => b.DataReferencia)
+            .ToList();
+    }
+
+    private List<ItemEstoque> LerTudo()
+    {
+        return Mapeamento == null ? new List<ItemEstoque>() : _excel.LerItens(Mapeamento);
     }
 
     private static (string Rotulo, DateTime Referencia) ChaveAgrupamento(DateTime data, AgrupamentoBalanco agrupamento)

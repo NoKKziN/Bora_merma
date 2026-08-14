@@ -1,5 +1,6 @@
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using GerenciamentoLoja.Models;
 
 namespace GerenciamentoLoja.Services;
@@ -61,7 +62,7 @@ public class ExcelInteropService : IExcelWorkbookService
             _appCriadoPorNos = true;
         }
 
-        _workbook = _app!.Workbooks.Open(caminhoArquivo);
+        _workbook = ComRetry(() => (object)_app!.Workbooks.Open(caminhoArquivo));
         _app.Visible = true;
         ArquivoAtual = caminhoArquivo;
         ConexaoAlterada?.Invoke(this, EventArgs.Empty);
@@ -93,18 +94,26 @@ public class ExcelInteropService : IExcelWorkbookService
     public List<string> ObterNomesAbas()
     {
         GarantirConectado();
-        var nomes = new List<string>();
-        foreach (var aba in _workbook!.Worksheets)
+        return ComRetry(() =>
         {
-            nomes.Add((string)aba.Name);
-            Marshal.ReleaseComObject((object)aba);
-        }
-        return nomes;
+            var nomes = new List<string>();
+            foreach (var aba in _workbook!.Worksheets)
+            {
+                nomes.Add((string)aba.Name);
+                Marshal.ReleaseComObject((object)aba);
+            }
+            return nomes;
+        });
     }
 
     public List<string> ObterCabecalhos(string nomeAba, int linhaCabecalho)
     {
         GarantirConectado();
+        return ComRetry(() => ObterCabecalhosInterno(nomeAba, linhaCabecalho));
+    }
+
+    private List<string> ObterCabecalhosInterno(string nomeAba, int linhaCabecalho)
+    {
         var worksheet = ObterWorksheet(nomeAba);
         try
         {
@@ -141,9 +150,14 @@ public class ExcelInteropService : IExcelWorkbookService
         }
     }
 
-    public List<Movimento> LerMovimentos(PlanilhaMapeamento mapeamento)
+    public List<ItemEstoque> LerItens(PlanilhaMapeamento mapeamento)
     {
         GarantirConectado();
+        return ComRetry(() => LerItensInterno(mapeamento));
+    }
+
+    private List<ItemEstoque> LerItensInterno(PlanilhaMapeamento mapeamento)
+    {
         var worksheet = ObterWorksheet(mapeamento.NomeAba);
         try
         {
@@ -155,10 +169,10 @@ public class ExcelInteropService : IExcelWorkbookService
                 int primeiraColuna = (int)usedRange.Column;
                 int ultimaColuna = primeiraColuna + (int)usedRange.Columns.Count - 1;
 
-                var movimentos = new List<Movimento>();
+                var itens = new List<ItemEstoque>();
                 if (ultimaLinha < primeiraLinha)
                 {
-                    return movimentos;
+                    return itens;
                 }
 
                 var bloco = worksheet.Range[
@@ -171,26 +185,28 @@ public class ExcelInteropService : IExcelWorkbookService
                     for (int linha = primeiraLinha; linha <= ultimaLinha; linha++)
                     {
                         int linhaRelativa = linha - primeiraLinha + 1;
-                        var sku = ObterTexto(valores, linhaRelativa, mapeamento, CamposMovimento.Sku, primeiraColuna);
+                        var sku = ObterTexto(valores, linhaRelativa, mapeamento, CamposItem.Sku, primeiraColuna);
                         if (string.IsNullOrWhiteSpace(sku))
                         {
                             continue;
                         }
 
-                        var movimento = new Movimento
+                        var item = new ItemEstoque
                         {
                             LinhaPlanilha = linha,
                             Sku = sku,
-                            Produto = ObterTexto(valores, linhaRelativa, mapeamento, CamposMovimento.Produto, primeiraColuna),
-                            Categoria = ObterTexto(valores, linhaRelativa, mapeamento, CamposMovimento.Categoria, primeiraColuna),
-                            Cliente = ObterTexto(valores, linhaRelativa, mapeamento, CamposMovimento.Cliente, primeiraColuna),
-                            Motivo = ObterTexto(valores, linhaRelativa, mapeamento, CamposMovimento.Motivo, primeiraColuna),
-                            Data = ObterData(valores, linhaRelativa, mapeamento, primeiraColuna),
-                            Tipo = ObterTipo(valores, linhaRelativa, mapeamento, primeiraColuna),
-                            Quantidade = (int)ObterNumero(valores, linhaRelativa, mapeamento, CamposMovimento.Quantidade, primeiraColuna),
-                            ValorUnitario = (decimal)ObterNumero(valores, linhaRelativa, mapeamento, CamposMovimento.ValorUnitario, primeiraColuna)
+                            Produto = ObterTexto(valores, linhaRelativa, mapeamento, CamposItem.Produto, primeiraColuna),
+                            Categoria = ObterTexto(valores, linhaRelativa, mapeamento, CamposItem.Categoria, primeiraColuna),
+                            Status = ObterTexto(valores, linhaRelativa, mapeamento, CamposItem.Status, primeiraColuna),
+                            Cliente = ObterTextoOpcional(valores, linhaRelativa, mapeamento, CamposItem.Cliente, primeiraColuna),
+                            ValorCusto = (decimal)ObterNumero(valores, linhaRelativa, mapeamento, CamposItem.ValorCusto, primeiraColuna),
+                            PrecoAVista = (decimal)ObterNumero(valores, linhaRelativa, mapeamento, CamposItem.PrecoAVista, primeiraColuna),
+                            PrecoCartao = (decimal)ObterNumero(valores, linhaRelativa, mapeamento, CamposItem.PrecoCartao, primeiraColuna),
+                            DataEntrada = ObterData(valores, linhaRelativa, mapeamento, CamposItem.DataEntrada, primeiraColuna),
+                            DataVenda = ObterDataOpcional(valores, linhaRelativa, mapeamento, CamposItem.DataVenda, primeiraColuna),
+                            ValorRecebido = ObterNumeroOpcional(valores, linhaRelativa, mapeamento, CamposItem.ValorRecebido, primeiraColuna)
                         };
-                        movimentos.Add(movimento);
+                        itens.Add(item);
                     }
                 }
                 finally
@@ -198,7 +214,7 @@ public class ExcelInteropService : IExcelWorkbookService
                     Marshal.ReleaseComObject((object)bloco);
                 }
 
-                return movimentos;
+                return itens;
             }
             finally
             {
@@ -211,50 +227,76 @@ public class ExcelInteropService : IExcelWorkbookService
         }
     }
 
-    public void AdicionarMovimento(PlanilhaMapeamento mapeamento, Movimento movimento)
+    public void AdicionarItem(PlanilhaMapeamento mapeamento, ItemEstoque item)
     {
         GarantirConectado();
-        var worksheet = ObterWorksheet(mapeamento.NomeAba);
-        try
+        ComRetry(() =>
         {
-            int colunaAncora = mapeamento.Colunas[CamposMovimento.Sku];
-            int ultimaLinhaUsada;
-            var ultimaCelula = worksheet.Cells[worksheet.Rows.Count, colunaAncora];
+            var worksheet = ObterWorksheet(mapeamento.NomeAba);
             try
             {
-                var celulaFinal = ultimaCelula.End(XlUp);
-                try
-                {
-                    ultimaLinhaUsada = (int)celulaFinal.Row;
-                }
-                finally
-                {
-                    Marshal.ReleaseComObject((object)celulaFinal);
-                }
+                int novaLinha = LocalizarProximaLinhaLivre(worksheet, mapeamento);
+
+                EscreverCelula(worksheet, novaLinha, mapeamento, CamposItem.Sku, item.Sku);
+                EscreverCelula(worksheet, novaLinha, mapeamento, CamposItem.Produto, item.Produto);
+                EscreverCelula(worksheet, novaLinha, mapeamento, CamposItem.Categoria, item.Categoria);
+                EscreverCelula(worksheet, novaLinha, mapeamento, CamposItem.Status, item.Status);
+                EscreverCelula(worksheet, novaLinha, mapeamento, CamposItem.DataEntrada, item.DataEntrada);
+                EscreverCelula(worksheet, novaLinha, mapeamento, CamposItem.ValorCusto, item.ValorCusto);
+                EscreverCelula(worksheet, novaLinha, mapeamento, CamposItem.PrecoAVista, item.PrecoAVista);
+                EscreverCelula(worksheet, novaLinha, mapeamento, CamposItem.PrecoCartao, item.PrecoCartao);
+
+                _workbook!.Save();
             }
             finally
             {
-                Marshal.ReleaseComObject((object)ultimaCelula);
+                Marshal.ReleaseComObject((object)worksheet);
             }
+        });
+    }
 
-            int novaLinha = Math.Max(ultimaLinhaUsada + 1, mapeamento.LinhaCabecalho + 1);
+    public void AtualizarItem(PlanilhaMapeamento mapeamento, int linhaPlanilha, IReadOnlyDictionary<string, object?> valores)
+    {
+        GarantirConectado();
+        ComRetry(() =>
+        {
+            var worksheet = ObterWorksheet(mapeamento.NomeAba);
+            try
+            {
+                foreach (var (campo, valor) in valores)
+                {
+                    EscreverCelula(worksheet, linhaPlanilha, mapeamento, campo, valor);
+                }
 
-            EscreverCelula(worksheet, novaLinha, mapeamento, CamposMovimento.Data, movimento.Data);
-            EscreverCelula(worksheet, novaLinha, mapeamento, CamposMovimento.Sku, movimento.Sku);
-            EscreverCelula(worksheet, novaLinha, mapeamento, CamposMovimento.Produto, movimento.Produto);
-            EscreverCelula(worksheet, novaLinha, mapeamento, CamposMovimento.Categoria, movimento.Categoria);
-            EscreverCelula(worksheet, novaLinha, mapeamento, CamposMovimento.Tipo,
-                movimento.Tipo == TipoMovimento.Entrada ? "Entrada" : "Saida");
-            EscreverCelula(worksheet, novaLinha, mapeamento, CamposMovimento.Quantidade, movimento.Quantidade);
-            EscreverCelula(worksheet, novaLinha, mapeamento, CamposMovimento.ValorUnitario, movimento.ValorUnitario);
-            EscreverCelula(worksheet, novaLinha, mapeamento, CamposMovimento.Cliente, movimento.Cliente);
-            EscreverCelula(worksheet, novaLinha, mapeamento, CamposMovimento.Motivo, movimento.Motivo);
+                _workbook!.Save();
+            }
+            finally
+            {
+                Marshal.ReleaseComObject((object)worksheet);
+            }
+        });
+    }
 
-            _workbook!.Save();
+    private static int LocalizarProximaLinhaLivre(dynamic worksheet, PlanilhaMapeamento mapeamento)
+    {
+        int colunaAncora = mapeamento.Colunas[CamposItem.Sku];
+        var ultimaCelula = worksheet.Cells[worksheet.Rows.Count, colunaAncora];
+        try
+        {
+            var celulaFinal = ultimaCelula.End(XlUp);
+            try
+            {
+                int ultimaLinhaUsada = (int)celulaFinal.Row;
+                return Math.Max(ultimaLinhaUsada + 1, mapeamento.LinhaCabecalho + 1);
+            }
+            finally
+            {
+                Marshal.ReleaseComObject((object)celulaFinal);
+            }
         }
         finally
         {
-            Marshal.ReleaseComObject((object)worksheet);
+            Marshal.ReleaseComObject((object)ultimaCelula);
         }
     }
 
@@ -298,6 +340,12 @@ public class ExcelInteropService : IExcelWorkbookService
         return valor?.ToString()?.Trim() ?? string.Empty;
     }
 
+    private static string? ObterTextoOpcional(object?[,] valores, int linhaRelativa, PlanilhaMapeamento mapeamento, string campo, int primeiraColuna)
+    {
+        var texto = ObterTexto(valores, linhaRelativa, mapeamento, campo, primeiraColuna);
+        return string.IsNullOrWhiteSpace(texto) ? null : texto;
+    }
+
     private static double ObterNumero(object?[,] valores, int linhaRelativa, PlanilhaMapeamento mapeamento, string campo, int primeiraColuna)
     {
         var valor = ObterValorBruto(valores, linhaRelativa, mapeamento, campo, primeiraColuna);
@@ -310,9 +358,21 @@ public class ExcelInteropService : IExcelWorkbookService
         };
     }
 
-    private static DateTime ObterData(object?[,] valores, int linhaRelativa, PlanilhaMapeamento mapeamento, int primeiraColuna)
+    private static decimal? ObterNumeroOpcional(object?[,] valores, int linhaRelativa, PlanilhaMapeamento mapeamento, string campo, int primeiraColuna)
     {
-        var valor = ObterValorBruto(valores, linhaRelativa, mapeamento, CamposMovimento.Data, primeiraColuna);
+        var valor = ObterValorBruto(valores, linhaRelativa, mapeamento, campo, primeiraColuna);
+        return valor switch
+        {
+            null => null,
+            double d => (decimal)d,
+            int i => i,
+            _ => double.TryParse(valor.ToString(), out var parsed) ? (decimal)parsed : null
+        };
+    }
+
+    private static DateTime ObterData(object?[,] valores, int linhaRelativa, PlanilhaMapeamento mapeamento, string campo, int primeiraColuna)
+    {
+        var valor = ObterValorBruto(valores, linhaRelativa, mapeamento, campo, primeiraColuna);
         return valor switch
         {
             null => default,
@@ -322,10 +382,16 @@ public class ExcelInteropService : IExcelWorkbookService
         };
     }
 
-    private static TipoMovimento ObterTipo(object?[,] valores, int linhaRelativa, PlanilhaMapeamento mapeamento, int primeiraColuna)
+    private static DateTime? ObterDataOpcional(object?[,] valores, int linhaRelativa, PlanilhaMapeamento mapeamento, string campo, int primeiraColuna)
     {
-        var texto = ObterTexto(valores, linhaRelativa, mapeamento, CamposMovimento.Tipo, primeiraColuna);
-        return texto.StartsWith("E", StringComparison.OrdinalIgnoreCase) ? TipoMovimento.Entrada : TipoMovimento.Saida;
+        var valor = ObterValorBruto(valores, linhaRelativa, mapeamento, campo, primeiraColuna);
+        return valor switch
+        {
+            null => null,
+            double serial => DateTime.FromOADate(serial),
+            DateTime dt => dt,
+            _ => DateTime.TryParse(valor.ToString(), out var parsed) ? parsed : null
+        };
     }
 
     private static object? ObterValorBruto(object?[,] valores, int linhaRelativa, PlanilhaMapeamento mapeamento, string campo, int primeiraColuna)
@@ -350,6 +416,44 @@ public class ExcelInteropService : IExcelWorkbookService
         {
             throw new InvalidOperationException("Nenhuma planilha conectada.");
         }
+    }
+
+    // O Excel rejeita chamadas COM reentrantes enquanto está ocupado (recalculando,
+    // exibindo um diálogo, ou sendo usado pelo cliente na tela) com RPC_E_CALL_REJECTED /
+    // RPC_E_SERVERCALL_RETRYLATER. Isso é esperado em automação real, não um bug — a
+    // prática padrão é tentar de novo algumas vezes com um pequeno intervalo.
+    private const uint RpcECallRejected = 0x80010001;
+    private const uint RpcEServerCallRetryLater = 0x8001010A;
+
+    private static T ComRetry<T>(Func<T> acao, int tentativas = 6, int esperaMs = 500)
+    {
+        for (int tentativa = 1; tentativa <= tentativas; tentativa++)
+        {
+            try
+            {
+                return acao();
+            }
+            catch (COMException ex) when (tentativa < tentativas && EhErroTransitorio(ex))
+            {
+                Thread.Sleep(esperaMs);
+            }
+        }
+        return acao();
+    }
+
+    private static void ComRetry(Action acao, int tentativas = 6, int esperaMs = 500)
+    {
+        ComRetry<object?>(() =>
+        {
+            acao();
+            return null;
+        }, tentativas, esperaMs);
+    }
+
+    private static bool EhErroTransitorio(COMException ex)
+    {
+        var codigo = unchecked((uint)ex.ErrorCode);
+        return codigo == RpcECallRejected || codigo == RpcEServerCallRetryLater;
     }
 
     [DllImport("ole32.dll")]

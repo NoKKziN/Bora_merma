@@ -1,26 +1,30 @@
 namespace GerenciamentoLoja.Models;
 
 // Campos lógicos que o sistema precisa localizar na planilha do cliente.
-public static class CamposMovimento
+// O layout segue a aba "CONTROLE DE VENDAS" real da loja: uma linha por peça,
+// com data de entrada no estoque e (quando vendida) data/valor da venda.
+public static class CamposItem
 {
-    public const string Data = "Data";
     public const string Sku = "SKU";
     public const string Produto = "Produto";
     public const string Categoria = "Categoria";
-    public const string Tipo = "Tipo";
-    public const string Quantidade = "Quantidade";
-    public const string ValorUnitario = "ValorUnitario";
+    public const string Status = "Status";
+    public const string DataEntrada = "DataEntrada";
+    public const string DataVenda = "DataVenda";
+    public const string ValorRecebido = "ValorRecebido";
+    public const string ValorCusto = "ValorCusto";
+    public const string PrecoAVista = "PrecoAVista";
+    public const string PrecoCartao = "PrecoCartao";
     public const string Cliente = "Cliente";
-    public const string Motivo = "Motivo";
 
     public static readonly string[] Obrigatorios =
     {
-        Data, Sku, Produto, Tipo, Quantidade, ValorUnitario
+        Sku, Produto, Categoria, Status, DataEntrada, DataVenda, ValorRecebido
     };
 
     public static readonly string[] Opcionais =
     {
-        Categoria, Cliente, Motivo
+        ValorCusto, PrecoAVista, PrecoCartao, Cliente
     };
 
     public static readonly string[] Todos = Obrigatorios.Concat(Opcionais).ToArray();
@@ -39,6 +43,6 @@ public class PlanilhaMapeamento
     {
         return !string.IsNullOrWhiteSpace(CaminhoArquivo)
             && !string.IsNullOrWhiteSpace(NomeAba)
-            && CamposMovimento.Obrigatorios.All(campo => Colunas.ContainsKey(campo));
+            && CamposItem.Obrigatorios.All(campo => Colunas.ContainsKey(campo));
     }
 }

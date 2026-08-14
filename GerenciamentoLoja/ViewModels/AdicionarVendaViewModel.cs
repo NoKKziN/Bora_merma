@@ -1,32 +1,24 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GerenciamentoLoja.Models;
 using GerenciamentoLoja.Services;
 
 namespace GerenciamentoLoja.ViewModels;
 
-public partial class AdicionarVendaViewModel : ObservableObject
+public partial class AdicionarVendaViewModel : ObservableObject, INavigableViewModel
 {
     private readonly ILojaDataService _dados;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(RegistrarVendaCommand))]
-    private string sku = string.Empty;
-
-    [ObservableProperty]
-    private string produto = string.Empty;
-
-    [ObservableProperty]
-    private string categoria = string.Empty;
+    public ObservableCollection<ItemEstoque> ItensDisponiveis { get; } = new();
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RegistrarVendaCommand))]
-    [NotifyPropertyChangedFor(nameof(Total))]
-    private int quantidade = 1;
+    private ItemEstoque? itemSelecionado;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RegistrarVendaCommand))]
-    [NotifyPropertyChangedFor(nameof(Total))]
-    private decimal valorUnitario;
+    private decimal valorRecebido;
 
     [ObservableProperty]
     private string? cliente;
@@ -34,28 +26,55 @@ public partial class AdicionarVendaViewModel : ObservableObject
     [ObservableProperty]
     private string? mensagem;
 
-    public decimal Total => Quantidade * ValorUnitario;
-
     public AdicionarVendaViewModel(ILojaDataService dados)
     {
         _dados = dados;
+        _dados.DadosAlterados += (_, _) => CarregarItensDisponiveis();
+    }
+
+    public void AoNavegar() => CarregarItensDisponiveis();
+
+    partial void OnItemSelecionadoChanged(ItemEstoque? value)
+    {
+        if (value != null && ValorRecebido == 0)
+        {
+            ValorRecebido = value.PrecoAVista;
+        }
+    }
+
+    private void CarregarItensDisponiveis()
+    {
+        ItensDisponiveis.Clear();
+        if (!_dados.EstaConectado)
+        {
+            Mensagem = "Conecte a planilha para registrar uma venda.";
+            return;
+        }
+
+        Mensagem = null;
+        foreach (var item in _dados.ObterItensDisponiveis())
+        {
+            ItensDisponiveis.Add(item);
+        }
     }
 
     private bool PodeRegistrar() =>
-        _dados.EstaConectado && !string.IsNullOrWhiteSpace(Sku) && Quantidade > 0 && ValorUnitario >= 0;
+        _dados.EstaConectado && ItemSelecionado != null && ValorRecebido >= 0;
 
     [RelayCommand(CanExecute = nameof(PodeRegistrar))]
     private void RegistrarVenda()
     {
+        if (ItemSelecionado == null)
+        {
+            return;
+        }
+
         try
         {
-            _dados.RegistrarVenda(Sku, Produto, Categoria, Quantidade, ValorUnitario, Cliente);
-            Mensagem = "Venda registrada com sucesso!";
-            Sku = string.Empty;
-            Produto = string.Empty;
-            Categoria = string.Empty;
-            Quantidade = 1;
-            ValorUnitario = 0;
+            _dados.RegistrarVenda(ItemSelecionado, ValorRecebido, Cliente);
+            Mensagem = $"Venda registrada para o SKU {ItemSelecionado.Sku}.";
+            ItemSelecionado = null;
+            ValorRecebido = 0;
             Cliente = null;
         }
         catch (Exception ex)

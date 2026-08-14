@@ -10,7 +10,7 @@ public partial class ProdutosDisponiveisViewModel : ObservableObject, INavigable
 {
     private readonly ILojaDataService _dados;
 
-    public ObservableCollection<ProdutoEstoque> Produtos { get; } = new();
+    public ObservableCollection<ItemEstoque> Itens { get; } = new();
 
     [ObservableProperty]
     private string? filtroCategoria;
@@ -19,38 +19,42 @@ public partial class ProdutosDisponiveisViewModel : ObservableObject, INavigable
     private string? mensagem;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(DarEntradaCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DarSaidaCommand))]
-    private string skuMovimento = string.Empty;
+    [NotifyCanExecuteChangedFor(nameof(DarBaixaCommand))]
+    private ItemEstoque? itemSelecionado;
 
     [ObservableProperty]
-    private string produtoMovimento = string.Empty;
+    [NotifyCanExecuteChangedFor(nameof(RegistrarEntradaCommand))]
+    private string skuEntrada = string.Empty;
 
     [ObservableProperty]
-    private string categoriaMovimento = string.Empty;
+    private string produtoEntrada = string.Empty;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(DarEntradaCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DarSaidaCommand))]
-    private int quantidadeMovimento = 1;
+    private string categoriaEntrada = string.Empty;
 
     [ObservableProperty]
-    private decimal valorUnitarioMovimento;
+    private decimal valorCustoEntrada;
+
+    [ObservableProperty]
+    private decimal precoAVistaEntrada;
+
+    [ObservableProperty]
+    private decimal precoCartaoEntrada;
 
     public ProdutosDisponiveisViewModel(ILojaDataService dados)
     {
         _dados = dados;
-        _dados.DadosAlterados += (_, _) => CarregarProdutos();
+        _dados.DadosAlterados += (_, _) => CarregarItens();
     }
 
-    public void AoNavegar() => CarregarProdutos();
+    public void AoNavegar() => CarregarItens();
 
     [RelayCommand]
-    private void Filtrar() => CarregarProdutos();
+    private void Filtrar() => CarregarItens();
 
-    private void CarregarProdutos()
+    private void CarregarItens()
     {
-        Produtos.Clear();
+        Itens.Clear();
 
         if (!_dados.EstaConectado)
         {
@@ -59,28 +63,33 @@ public partial class ProdutosDisponiveisViewModel : ObservableObject, INavigable
         }
 
         Mensagem = null;
-        foreach (var produto in _dados.ObterProdutosDisponiveis())
+        foreach (var item in _dados.ObterItensDisponiveis())
         {
             if (!string.IsNullOrWhiteSpace(FiltroCategoria) &&
-                !produto.Categoria.Contains(FiltroCategoria, StringComparison.OrdinalIgnoreCase))
+                !item.Categoria.Contains(FiltroCategoria, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
-            Produtos.Add(produto);
+            Itens.Add(item);
         }
     }
 
-    private bool PodeRegistrarMovimento() =>
-        _dados.EstaConectado && !string.IsNullOrWhiteSpace(SkuMovimento) && QuantidadeMovimento > 0;
+    private bool PodeRegistrarEntrada() =>
+        _dados.EstaConectado && !string.IsNullOrWhiteSpace(SkuEntrada);
 
-    [RelayCommand(CanExecute = nameof(PodeRegistrarMovimento))]
-    private void DarEntrada()
+    [RelayCommand(CanExecute = nameof(PodeRegistrarEntrada))]
+    private void RegistrarEntrada()
     {
         try
         {
-            _dados.RegistrarEntradaEstoque(SkuMovimento, ProdutoMovimento, CategoriaMovimento, QuantidadeMovimento, ValorUnitarioMovimento);
-            Mensagem = $"Entrada registrada para o SKU {SkuMovimento}.";
-            LimparFormularioMovimento();
+            _dados.RegistrarEntrada(SkuEntrada, ProdutoEntrada, CategoriaEntrada, ValorCustoEntrada, PrecoAVistaEntrada, PrecoCartaoEntrada);
+            Mensagem = $"Entrada registrada para o SKU {SkuEntrada}.";
+            SkuEntrada = string.Empty;
+            ProdutoEntrada = string.Empty;
+            CategoriaEntrada = string.Empty;
+            ValorCustoEntrada = 0;
+            PrecoAVistaEntrada = 0;
+            PrecoCartaoEntrada = 0;
         }
         catch (Exception ex)
         {
@@ -88,27 +97,24 @@ public partial class ProdutosDisponiveisViewModel : ObservableObject, INavigable
         }
     }
 
-    [RelayCommand(CanExecute = nameof(PodeRegistrarMovimento))]
-    private void DarSaida()
+    private bool PodeDarBaixa() => _dados.EstaConectado && ItemSelecionado != null;
+
+    [RelayCommand(CanExecute = nameof(PodeDarBaixa))]
+    private void DarBaixa()
     {
+        if (ItemSelecionado == null)
+        {
+            return;
+        }
+
         try
         {
-            _dados.RegistrarSaidaEstoque(SkuMovimento, ProdutoMovimento, CategoriaMovimento, QuantidadeMovimento, ValorUnitarioMovimento, "Ajuste");
-            Mensagem = $"Saída registrada para o SKU {SkuMovimento}.";
-            LimparFormularioMovimento();
+            _dados.DarBaixa(ItemSelecionado);
+            Mensagem = $"Baixa registrada para o SKU {ItemSelecionado.Sku}.";
         }
         catch (Exception ex)
         {
-            Mensagem = $"Erro ao registrar saída: {ex.Message}";
+            Mensagem = $"Erro ao dar baixa: {ex.Message}";
         }
-    }
-
-    private void LimparFormularioMovimento()
-    {
-        SkuMovimento = string.Empty;
-        ProdutoMovimento = string.Empty;
-        CategoriaMovimento = string.Empty;
-        QuantidadeMovimento = 1;
-        ValorUnitarioMovimento = 0;
     }
 }

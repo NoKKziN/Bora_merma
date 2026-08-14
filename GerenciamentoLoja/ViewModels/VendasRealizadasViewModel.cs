@@ -9,7 +9,7 @@ public partial class VendasRealizadasViewModel : ObservableObject, INavigableVie
 {
     private readonly ILojaDataService _dados;
 
-    public ObservableCollection<Movimento> Vendas { get; } = new();
+    public ObservableCollection<ItemEstoque> Vendas { get; } = new();
 
     [ObservableProperty]
     private string? mensagem;
@@ -41,6 +41,6 @@ public partial class VendasRealizadasViewModel : ObservableObject, INavigableVie
         {
             Vendas.Add(venda);
         }
-        TotalVendas = Vendas.Sum(v => v.ValorTotal);
+        TotalVendas = Vendas.Sum(v => v.ValorRecebido ?? 0);
     }
 }
