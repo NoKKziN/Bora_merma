@@ -9,7 +9,7 @@
              d:DataContext="{d:DesignInstance vm:ConexaoPlanilhaViewModel}"
              d:DesignWidth="800" d:DesignHeight="600">
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
-        <StackPanel MaxWidth="640" HorizontalAlignment="Left">
+        <StackPanel MaxWidth="640">
             <TextBlock Text="Conectar com a planilha da loja" Style="{StaticResource MaterialDesignHeadline5TextBlock}" Margin="0,0,0,8"/>
             <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MaterialDesignBodyLight}" Margin="0,0,0,24">
                 Selecione o arquivo .xlsx da loja, escolha a aba e informe qual coluna corresponde a cada campo.
