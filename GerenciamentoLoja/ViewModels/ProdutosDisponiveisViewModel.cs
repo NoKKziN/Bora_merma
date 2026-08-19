@@ -33,13 +33,13 @@ public partial class ProdutosDisponiveisViewModel : ObservableObject, INavigable
     private string categoriaEntrada = string.Empty;
 
     [ObservableProperty]
-    private decimal valorCustoEntrada;
+    private decimal? valorCustoEntrada;
 
     [ObservableProperty]
-    private decimal precoAVistaEntrada;
+    private decimal? precoAVistaEntrada;
 
     [ObservableProperty]
-    private decimal precoCartaoEntrada;
+    private decimal? precoCartaoEntrada;
 
     public ProdutosDisponiveisViewModel(ILojaDataService dados)
     {
@@ -82,14 +82,14 @@ public partial class ProdutosDisponiveisViewModel : ObservableObject, INavigable
     {
         try
         {
-            _dados.RegistrarEntrada(SkuEntrada, ProdutoEntrada, CategoriaEntrada, ValorCustoEntrada, PrecoAVistaEntrada, PrecoCartaoEntrada);
+            _dados.RegistrarEntrada(SkuEntrada, ProdutoEntrada, CategoriaEntrada, ValorCustoEntrada ?? 0, PrecoAVistaEntrada ?? 0, PrecoCartaoEntrada ?? 0);
             Mensagem = $"Entrada registrada para o SKU {SkuEntrada}.";
             SkuEntrada = string.Empty;
             ProdutoEntrada = string.Empty;
             CategoriaEntrada = string.Empty;
-            ValorCustoEntrada = 0;
-            PrecoAVistaEntrada = 0;
-            PrecoCartaoEntrada = 0;
+            ValorCustoEntrada = null;
+            PrecoAVistaEntrada = null;
+            PrecoCartaoEntrada = null;
         }
         catch (Exception ex)
         {
