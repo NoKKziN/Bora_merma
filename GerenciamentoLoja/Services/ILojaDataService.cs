@@ -22,4 +22,6 @@ public interface ILojaDataService
     void DarBaixa(ItemEstoque item);
 
     List<BalancoPeriodo> ObterBalanco(AgrupamentoBalanco agrupamento);
+
+    ResumoDashboard ObterResumoDashboard();
 }

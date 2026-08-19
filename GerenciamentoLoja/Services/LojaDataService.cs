@@ -134,6 +134,78 @@ public class LojaDataService : ILojaDataService
             .ToList();
     }
 
+    public ResumoDashboard ObterResumoDashboard()
+    {
+        var itens = LerTudo();
+
+        return new ResumoDashboard
+        {
+            TotalItens = itens.Count,
+            TotalDisponiveis = itens.Count(i => i.Disponivel),
+            TotalVendidos = itens.Count(i => i.Vendido),
+            DisponiveisPorCategoria = itens
+                .Where(i => i.Disponivel)
+                .GroupBy(i => string.IsNullOrWhiteSpace(i.Categoria) ? "Sem categoria" : i.Categoria.Trim())
+                .Select(g => new ContagemRotulo { Rotulo = g.Key, Quantidade = g.Count() })
+                .OrderByDescending(c => c.Quantidade)
+                .ThenBy(c => c.Rotulo)
+                .ToList(),
+            // "Produto que mais sai" conta peças vendidas com o mesmo nome de produto;
+            // o SKU não serve porque é único por peça, então cada um venderia no máximo 1.
+            ProdutoMaisVendido = itens
+                .Where(i => i.Vendido)
+                .GroupBy(i => string.IsNullOrWhiteSpace(i.Produto) ? "Sem nome" : i.Produto.Trim())
+                .Select(g => new ContagemRotulo { Rotulo = g.Key, Quantidade = g.Count() })
+                .OrderByDescending(c => c.Quantidade)
+                .ThenBy(c => c.Rotulo)
+                .FirstOrDefault(),
+            MovimentacaoMensal = MontarMovimentacaoMensal(itens)
+        };
+    }
+
+    private static List<MovimentoMensal> MontarMovimentacaoMensal(List<ItemEstoque> itens, int meses = 12)
+    {
+        // Data em branco (ou coluna não mapeada) chega como DateTime default e viraria
+        // um mês fantasma no ano 1, esticando o gráfico inteiro — fora da contagem.
+        var entradas = itens
+            .Where(i => i.DataEntrada != default)
+            .GroupBy(i => PrimeiroDiaDoMes(i.DataEntrada))
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var saidas = itens
+            .Where(i => i.Vendido && i.DataVenda.HasValue && i.DataVenda.Value != default)
+            .GroupBy(i => PrimeiroDiaDoMes(i.DataVenda!.Value))
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        if (entradas.Count == 0 && saidas.Count == 0)
+        {
+            return new List<MovimentoMensal>();
+        }
+
+        // A janela termina no último mês com movimento, e não no mês atual: se o cliente
+        // parou de lançar há um tempo, o gráfico ainda mostra os dados dele em vez de
+        // uma sequência de meses vazios.
+        var fim = entradas.Keys.Concat(saidas.Keys).Max();
+        var inicio = fim.AddMonths(-(meses - 1));
+
+        var resultado = new List<MovimentoMensal>();
+        for (var mes = inicio; mes <= fim; mes = mes.AddMonths(1))
+        {
+            resultado.Add(new MovimentoMensal
+            {
+                DataReferencia = mes,
+                // pt-BR abrevia os meses com ponto ("nov."), que no eixo do gráfico
+                // vira "Nov./25" — o ponto sai para o rótulo ficar limpo.
+                Periodo = Capitalizar(mes.ToString("MMM/yy", PtBr).Replace(".", string.Empty)),
+                Entradas = entradas.TryGetValue(mes, out var entrada) ? entrada : 0,
+                Saidas = saidas.TryGetValue(mes, out var saida) ? saida : 0
+            });
+        }
+        return resultado;
+    }
+
+    private static DateTime PrimeiroDiaDoMes(DateTime data) => new(data.Year, data.Month, 1);
+
     private List<ItemEstoque> LerTudo()
     {
         return Mapeamento == null ? new List<ItemEstoque>() : _excel.LerItens(Mapeamento);
