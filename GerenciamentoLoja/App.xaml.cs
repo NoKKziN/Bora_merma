@@ -25,7 +25,7 @@ namespace GerenciamentoLoja
             var shellViewModel = new ShellViewModel(
                 dadosService,
                 new ConexaoPlanilhaViewModel(dadosService, excelService, configService),
-                new DashboardPlaceholderViewModel(),
+                new DashboardViewModel(dadosService),
                 new ProdutosDisponiveisViewModel(dadosService),
                 new VendasRealizadasViewModel(dadosService),
                 new AdicionarVendaViewModel(dadosService),

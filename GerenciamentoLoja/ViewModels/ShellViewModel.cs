@@ -9,7 +9,7 @@ public partial class ShellViewModel : ObservableObject
     private readonly ILojaDataService _dados;
 
     public ConexaoPlanilhaViewModel Conexao { get; }
-    public DashboardPlaceholderViewModel Dashboard { get; }
+    public DashboardViewModel Dashboard { get; }
     public ProdutosDisponiveisViewModel Produtos { get; }
     public VendasRealizadasViewModel VendasRealizadas { get; }
     public AdicionarVendaViewModel AdicionarVenda { get; }
@@ -27,7 +27,7 @@ public partial class ShellViewModel : ObservableObject
     public ShellViewModel(
         ILojaDataService dados,
         ConexaoPlanilhaViewModel conexao,
-        DashboardPlaceholderViewModel dashboard,
+        DashboardViewModel dashboard,
         ProdutosDisponiveisViewModel produtos,
         VendasRealizadasViewModel vendasRealizadas,
         AdicionarVendaViewModel adicionarVenda,

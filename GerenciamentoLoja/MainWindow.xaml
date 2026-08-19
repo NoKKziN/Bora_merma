@@ -14,8 +14,8 @@
         TextElement.FontSize="14">
 
     <Window.Resources>
-        <DataTemplate DataType="{x:Type vm:DashboardPlaceholderViewModel}">
-            <views:DashboardPlaceholderView/>
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+            <views:DashboardView/>
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:ConexaoPlanilhaViewModel}">
             <views:ConexaoPlanilhaView/>

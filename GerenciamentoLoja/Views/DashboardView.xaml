@@ -1,0 +1,99 @@
+<UserControl x:Class="GerenciamentoLoja.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+             xmlns:vm="clr-namespace:GerenciamentoLoja.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:DashboardViewModel}"
+             d:DesignWidth="1000" d:DesignHeight="720">
+    <UserControl.Resources>
+        <Style x:Key="KpiRotuloStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBodyLight}"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="{Binding Mensagem}" Margin="0,0,0,16"
+                       Visibility="{Binding Mensagem, Converter={StaticResource StringToVisibilityConverter}}"
+                       Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+
+            <UniformGrid Grid.Row="1" Columns="4"
+                         Visibility="{Binding TemDados, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <materialDesign:Card Padding="16" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Produtos em estoque" Style="{StaticResource KpiRotuloStyle}"/>
+                        <TextBlock Text="{Binding TotalDisponiveis, StringFormat={}{0:N0}}"
+                                   Style="{StaticResource MaterialDesignHeadline5TextBlock}"/>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <materialDesign:Card Padding="16" Margin="8,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Produtos vendidos" Style="{StaticResource KpiRotuloStyle}"/>
+                        <TextBlock Text="{Binding TotalVendidos, StringFormat={}{0:N0}}"
+                                   Style="{StaticResource MaterialDesignHeadline5TextBlock}"/>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <materialDesign:Card Padding="16" Margin="8,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Total cadastrado" Style="{StaticResource KpiRotuloStyle}"/>
+                        <TextBlock Text="{Binding TotalItens, StringFormat={}{0:N0}}"
+                                   Style="{StaticResource MaterialDesignHeadline5TextBlock}"/>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <materialDesign:Card Padding="16" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Produto que mais sai" Style="{StaticResource KpiRotuloStyle}"/>
+                        <TextBlock Text="{Binding ProdutoMaisVendido}" TextWrapping="Wrap"
+                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                   ToolTip="{Binding ProdutoMaisVendido}"/>
+                        <TextBlock Text="{Binding ProdutoMaisVendidoDetalhe}" Style="{StaticResource KpiRotuloStyle}"/>
+                    </StackPanel>
+                </materialDesign:Card>
+            </UniformGrid>
+
+            <materialDesign:Card Grid.Row="2" Padding="16" Margin="0,16,0,0"
+                                 Visibility="{Binding TemDados, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel>
+                    <TextBlock Text="Produtos em estoque por categoria"
+                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
+                    <lvc:CartesianChart Height="260" Margin="0,12,0,0"
+                                        Series="{Binding SeriesCategorias}"
+                                        XAxes="{Binding EixoXCategorias}"
+                                        YAxes="{Binding EixoYCategorias}"
+                                        TooltipPosition="Top"
+                                        LegendPosition="Hidden"/>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <materialDesign:Card Grid.Row="3" Padding="16" Margin="0,16,0,0"
+                                 Visibility="{Binding TemDados, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel>
+                    <TextBlock Text="Entradas e saídas por mês (em peças)"
+                               Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
+                    <lvc:CartesianChart Height="300" Margin="0,12,0,0"
+                                        Series="{Binding SeriesMovimentacao}"
+                                        XAxes="{Binding EixoXMovimentacao}"
+                                        YAxes="{Binding EixoYMovimentacao}"
+                                        TooltipPosition="Top"
+                                        LegendPosition="Bottom"/>
+                </StackPanel>
+            </materialDesign:Card>
+        </Grid>
+    </ScrollViewer>
+</UserControl>
